@@ -1,4 +1,4 @@
-swagger: '3.1.0'
+swagger: '2.0'
 info:
   title: Star Wars Proxy API
   description: API Gateway guard Star Wars Cloud Function
