@@ -21,7 +21,14 @@ class StarWarsController:
             }
             return '', 204, options_headers
 
-        current_base_url = request.url_root.rstrip('/')
+        forwarded_host = request.headers.get('X-Forwarded-Host')
+        forwarded_proto = request.headers.get('X-Forwarded-Proto', 'https')
+
+        if forwarded_host:
+            current_base_url = f"{forwarded_proto}://{forwarded_host}"
+        else:
+
+            current_base_url = request.url_root.rstrip('/')
 
         path_segments = [p for p in request.path.strip('/').split('/') if p]
 
