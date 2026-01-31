@@ -1,0 +1,56 @@
+swagger: '3.1.0'
+info:
+  title: Star Wars Proxy API
+  description: API Gateway guard Star Wars Cloud Function
+  version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
+paths:
+  /{proxy+}:
+    get:
+      summary: Cloud Function Proxy
+      operationId: starwars-proxy
+      parameters:
+        - name: proxy+
+          in: path
+          required: true
+          type: string
+        - name: type
+          in: query
+          type: string
+        - name: filter
+          in: query
+          type: string
+        - name: sort
+          in: query
+          type: string
+        - name: page
+          in: query
+          type: integer
+        - name: size
+          in: query
+          type: integer
+        - name: key
+          in: query
+          type: string
+          description: Google Cloud API Key
+      x-google-backend:
+        address: https://starwars-function-6qyfkgqywa-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - api_key: [ ]
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "key"
+    in: "query"
