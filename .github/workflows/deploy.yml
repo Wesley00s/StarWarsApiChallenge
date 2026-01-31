@@ -50,14 +50,12 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy to Cloud Functions
-        id: deploy
-        uses: google-github-actions/deploy-cloud-functions@v2
-        with:
-          name: ${{ env.FUNCTION_NAME }}
-          runtime: python311
-          region: ${{ env.REGION }}
-          entry_point: hello_http
-          source_dir: .
-          gen2: true
-          trigger_http: true
-          allow_unauthenticated: true
+        run: |
+          gcloud functions deploy ${{ env.FUNCTION_NAME }} \
+            --gen2 \
+            --runtime=python311 \
+            --region=${{ env.REGION }} \
+            --source=. \
+            --entry-point=hello_http \
+            --trigger-http \
+            --allow-unauthenticated
