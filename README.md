@@ -15,13 +15,34 @@ This project implements a **Secure Serverless Architecture** on Google Cloud Pla
 ### Architecture Diagram
 
 ```mermaid
-graph LR
-    Client[Client / App] -- "HTTPS + API Key" --> Gateway[GCP API Gateway]
-    Gateway -- "IAM Authentication (Service Account)" --> Function[Cloud Function Gen 2]
-    Function -- "HTTP Request (httpx)" --> SWAPI[External SWAPI]
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e8f0fe', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#fff'}, 'flowchart': {'curve': 'basis', 'nodeSpacing': 50, 'rankSpacing': 80, 'padding': 20}} }%%
+
+graph TD
+    classDef client fill:#ffffff,stroke:#333,stroke-width:2px,color:#000,rx:10,ry:10;
+    classDef gcp fill:#e8f0fe,stroke:#4285F4,stroke-width:2px,color:#1a73e8,rx:5,ry:5;
+    classDef external fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#e65100,rx:5,ry:5;
+
+    Client([&nbsp;&nbsp;👤 Client / App&nbsp;&nbsp;<br/>Browser or Mobile])
     
-    style Gateway fill:#f9f,stroke:#333,stroke-width:2px
-    style Function fill:#bbf,stroke:#333,stroke-width:2px
+    subgraph Cloud [☁️ Google Cloud Platform - Secure Zone]
+    direction TB
+    
+    Gateway["&nbsp;&nbsp;🛡️ API Gateway&nbsp;&nbsp;<br/>(Auth Check & Routing)"]
+    Function["&nbsp;&nbsp;⚡ Cloud Function Gen 2&nbsp;&nbsp;<br/>(Controller + Service + Logic)"]
+    
+    Gateway -. "✅ IAM Authorized<br/>(Service Account)" .-> Function
+    end
+    
+    SWAPI[("&nbsp;&nbsp;💾 External SWAPI&nbsp;&nbsp;<br/>(Raw Data Source)")]
+    
+    Client --> |"<p style=padding:10px;background:#fff3e0;>1. HTTPS Request<br/>(with ?key=API_KEY)<p>"| Gateway
+    Function <==> |"<p style=padding:10px;background:#fff3e0;>2. Fetch & Process Data<br/>(httpx)<p>"| SWAPI
+    
+    class Client client;
+    class Gateway,Function gcp;
+    class SWAPI external;
+    
+    style Cloud fill:#f8faff,stroke:#aecbfa,stroke-width:2px
 ```
 
 ### Components
