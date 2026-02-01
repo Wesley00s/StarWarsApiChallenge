@@ -59,3 +59,4 @@ jobs:
             --entry-point=hello_http \
             --trigger-http \
             --no-allow-unauthenticated
+            --set-env-vars BASE_URL=${{ secrets.GATEWAY_URL }}
