@@ -1,7 +1,10 @@
 import functions_framework
+from dotenv import load_dotenv
 
 from starwars_controller import StarWarsController
 from starwars_service import StarWarsService
+
+load_dotenv()
 
 service = StarWarsService()
 controller = StarWarsController(service)
