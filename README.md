@@ -10,7 +10,7 @@ A high-performance, secure Serverless API built to query, filter, sort, and pagi
 
 ## 🏗️ Technical Architecture
 
-This project implements a **Secure Serverless Architecture** on Google Cloud Platform, ensuring that the backend logic is protected and accessible only via authorized entry points.
+This project implements a **Secure Serverless Architecture** on Google Cloud Platform. It ensures backend logic is protected and accessible only via authorized entry points.
 
 ### Architecture Diagram
 
@@ -23,7 +23,7 @@ graph TD
     classDef external fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#e65100,rx:5,ry:5;
 
     Client([&nbsp;&nbsp;👤 Client / App&nbsp;&nbsp;<br/>Browser or Mobile])
-    
+
     subgraph Cloud [☁️ Google Cloud Platform - Secure Zone]
     direction TB
     
@@ -50,7 +50,7 @@ graph TD
 1.  **API Gateway:** Acts as the single entry point ("Front Door"). It manages traffic, handles SSL, and enforces **API Key Authentication**.
 2.  **Cloud Function (Gen 2):** Hosts the Python application logic. Direct public access is **disabled** (`--no-allow-unauthenticated`). It only accepts requests from the Gateway's Service Account via IAM permissions.
 3.  **Clean Architecture:**
-    * **Controller:** HTTP handling & Validation.
+    * **Controller:** HTTP handling & Validation (Environment aware).
     * **Service:** Business Logic (Sorting, Filtering, Pagination).
     * **Client:** External data fetching.
 
@@ -70,7 +70,9 @@ This proxy adds **superpowers** to the raw SWAPI data:
 
 ---
 
-## 🚀 API Usage
+## 🚀 Production Usage (Cloud)
+
+When deployed, the API is accessed via the **API Gateway** URL.
 
 **Base URL:**
 `https://starwars-gateway-42dgaxj9.uc.gateway.dev`
@@ -89,7 +91,7 @@ All requests must include a valid Google Cloud API Key via the `key` query param
 | `page`    | Page number                                                           | `1`      | `page=2`          |
 | `size`    | Number of items per page                                              | `10`     | `size=20`         |
 
-### Examples
+### Examples (cURL)
 
 #### 1. List Films Sorted by Title (A-Z)
 ```bash
@@ -102,31 +104,38 @@ Finds "Luke", "luke", or "LUKE".
 curl -s 'https://starwars-gateway-42dgaxj9.uc.gateway.dev?type=people&filter=Skywalker&key=YOUR_API_KEY'
 ```
 
-#### 3. Custom Pagination for Starships
-Get page 2, displaying 5 starships per page.
-```bash
-curl -s 'https://starwars-gateway-42dgaxj9.uc.gateway.dev?type=starships&page=2&size=5&key=YOUR_API_KEY'
-```
-
 ---
 
-## 💻 Local Development
+## 💻 Local Development & Testing
 
-This project uses **uv** for dependency management and **pytest** for testing.
+This project uses **uv** for dependency management. To simulate the Google Cloud environment locally, we use the **Functions Framework**.
 
-### Prerequisites
-* Python 3.11+
-* `uv` (Universal Python Package Manager)
-
-### Installation
+### 1. Setup Environment
 ```bash
 # Install dependencies
 uv sync
 ```
 
-### Running Tests
-The project has comprehensive unit tests covering Client, Service, and Controller layers.
+### 2. Configure Local Variables (.env)
+Create a `.env` file to define your local base URL. This ensures the API generates correct links (HATEOAS) when running on your machine.
 ```bash
+cp .env.example .env
+```
+*Make sure `.env` contains: `BASE_URL=http://127.0.0.1:8080`*
+
+### 3. Run Local Server
+Start the function locally on port 8080:
+```bash
+uv run functions-framework --target=hello_http --debug --port=8080
+```
+
+### 4. Run Local Tests
+Open a new terminal and test without an API Key (Authentication is handled by Gateway, so it's bypassed locally):
+```bash
+# Test connection
+curl "http://localhost:8080?type=people&name=luke"
+
+# Run Unit Tests
 uv run pytest
 ```
 
@@ -142,7 +151,7 @@ Ideally, this project would use **Workload Identity Federation (WIF)**. However,
 ### Manual Deployment Commands
 
 **1. Cloud Function (Backend):**
-Note the usage of `--no-allow-unauthenticated` to ensure security.
+Note the usage of `--no-allow-unauthenticated` to ensure security and the environment variable injection.
 ```bash
 gcloud functions deploy starwars-function \
   --gen2 \
@@ -151,7 +160,8 @@ gcloud functions deploy starwars-function \
   --source=. \
   --entry-point=hello_http \
   --trigger-http \
-  --no-allow-unauthenticated
+  --no-allow-unauthenticated \
+  --set-env-vars BASE_URL=${BASE_URL}
 ```
 
 **2. API Gateway (Frontend):**
@@ -167,18 +177,19 @@ gcloud api-gateway gateways update starwars-gateway \
 
 ## 📂 Project Structure
 
-```text
+```bash
 .
 ├── .github/workflows/       # CI/CD Pipelines
 │   └── deploy.yml           # GitHub Actions Deployment
 ├── model/                   # Data Models (Type Hinting)
 │   ├── films.py
 │   ├── person.py
-│   ├── planet.py
 │   └── ...
 ├── tests/                   # Unit Tests
+├── .env                     # Local configuration (GitIgnored)
+├── .env.example             # Example configuration
 ├── main.py                  # Cloud Function Entrypoint
-├── starwars_controller.py   # HTTP & Validation Layer
+├── starwars_controller.py   # HTTP & Validation Layer (Env Aware)
 ├── starwars_service.py      # Business Logic Layer
 ├── swapi_client.py          # Data Access Layer
 ├── openapi-spec.yaml        # API Gateway Configuration (OpenAPI 2.0)
