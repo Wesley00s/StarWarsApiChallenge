@@ -1,3 +1,4 @@
+import os
 from flask import jsonify, Request
 from typing import Tuple, Dict, Any
 from starwars_service import StarWarsService
@@ -21,13 +22,19 @@ class StarWarsController:
             }
             return '', 204, options_headers
 
-        forwarded_host = request.headers.get('X-Forwarded-Host')
-        forwarded_proto = request.headers.get('X-Forwarded-Proto', 'https')
+        configured_base_url = os.environ.get('BASE_URL', '').rstrip('/')
 
-        if forwarded_host:
+        if configured_base_url:
+            current_base_url = configured_base_url
+
+
+        elif request.headers.get('X-Forwarded-Host'):
+            forwarded_host = request.headers.get('X-Forwarded-Host')
+            forwarded_proto = request.headers.get('X-Forwarded-Proto', 'https')
             current_base_url = f"{forwarded_proto}://{forwarded_host}"
-        else:
 
+
+        else:
             current_base_url = request.url_root.rstrip('/')
 
         path_segments = [p for p in request.path.strip('/').split('/') if p]
@@ -59,6 +66,7 @@ class StarWarsController:
 
         try:
             if resource_id:
+
                 item = self.service.get_resource_by_id(resource_type, resource_id, current_base_url)
                 if item:
                     return jsonify(item), 200, cors_headers
