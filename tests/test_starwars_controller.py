@@ -38,8 +38,15 @@ def test_handle_request_success(controller, mock_service):
         response, status_code, headers = controller.handle_request(request)
 
         assert status_code == 200
-        # CORREÇÃO: Adicionado base_url='http://localhost'
-        mock_service.get_people.assert_called_with('luke', None, 1, 10, base_url='http://localhost')
+
+        mock_service.get_people.assert_called_with(
+            'luke',
+            None,
+            1,
+            10,
+            base_url='http://localhost',
+            film_id=None
+        )
 
 
 def test_cors_options_request(controller):
@@ -90,7 +97,31 @@ def test_filter_name_fallback(controller, mock_service):
 
         controller.handle_request(request)
 
-        mock_service.get_people.assert_called_with('Yoda', None, 1, 10, base_url='http://localhost')
+        mock_service.get_people.assert_called_with(
+            'Yoda',
+            None,
+            1,
+            10,
+            base_url='http://localhost',
+            film_id=None
+        )
+
+
+def test_handle_request_with_film_id(controller, mock_service):
+    with app.test_request_context('/?type=people&film_id=1'):
+        from flask import request
+
+        response, status_code, headers = controller.handle_request(request)
+
+        assert status_code == 200
+        mock_service.get_people.assert_called_with(
+            None,
+            None,
+            1,
+            10,
+            base_url='http://localhost',
+            film_id=1
+        )
 
 
 @pytest.mark.parametrize("resource_type, service_method", [
