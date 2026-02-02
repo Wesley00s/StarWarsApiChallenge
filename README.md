@@ -23,7 +23,7 @@ graph TD
     classDef external fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#e65100,rx:5,ry:5;
 
     Client([&nbsp;&nbsp;👤 Client / App&nbsp;&nbsp;<br/>Browser or Mobile])
-
+    
     subgraph Cloud [☁️ Google Cloud Platform - Secure Zone]
     direction TB
     
@@ -51,7 +51,7 @@ graph TD
 2.  **Cloud Function (Gen 2):** Hosts the Python application logic. Direct public access is **disabled** (`--no-allow-unauthenticated`). It only accepts requests from the Gateway's Service Account via IAM permissions.
 3.  **Clean Architecture:**
     * **Controller:** HTTP handling & Validation (Environment aware).
-    * **Service:** Business Logic (Sorting, Filtering, Pagination).
+    * **Service:** Business Logic (Data Correlation, Sorting, Filtering, Pagination).
     * **Client:** External data fetching.
 
 ---
@@ -60,13 +60,14 @@ graph TD
 
 This proxy adds **superpowers** to the raw SWAPI data:
 
-| Feature         |    Original SWAPI     |                This Proxy API                |
-|:----------------|:---------------------:|:--------------------------------------------:|
-| **Security**    |        Public         |           🔒 **API Key Protected**           |
-| **Search**      |        Limited        |   ✅ **Partial Search** (Case Insensitive)    |
-| **Sorting**     |    ❌ Not supported    | ✅ **Dynamic Sorting** (e.g., by Name, Title) |
-| **Pagination**  |   Fixed (10 items)    |    ✅ **Customizable** (`page` and `size`)    |
-| **Performance** | Slower (Page walking) |     ⚡ **Fast** (In-memory consolidation)     |
+| Feature         |    Original SWAPI     |                   This Proxy API                    |
+|:----------------|:---------------------:|:---------------------------------------------------:|
+| **Security**    |        Public         |              🔒 **API Key Protected**               |
+| **Correlation** |     Manual Links      | ✅ **Deep Filtering** (e.g., Get Characters by Film) |
+| **Search**      |        Limited        |       ✅ **Partial Search** (Case Insensitive)       |
+| **Sorting**     |    ❌ Not supported    |    ✅ **Dynamic Sorting** (e.g., by Name, Title)     |
+| **Pagination**  |   Fixed (10 items)    |       ✅ **Customizable** (`page` and `size`)        |
+| **Performance** | Slower (Page walking) |        ⚡ **Fast** (In-memory consolidation)         |
 
 ---
 
@@ -82,14 +83,15 @@ All requests must include a valid Google Cloud API Key via the `key` query param
 
 ### Supported Parameters
 
-| Parameter | Description                                                           | Default  | Example           |
-|:----------|:----------------------------------------------------------------------|:---------|:------------------|
-| `type`    | Resource type (`people`, `films`, `planets`, `starships`, `vehicles`) | `people` | `type=planets`    |
-| `key`     | **Required.** Your Google Cloud API Key.                              | -        | `key=AIzaSy...`   |
-| `filter`  | Term for text search (names or titles)                                | `None`   | `filter=tatooine` |
-| `sort`    | Field key to sort the results by                                      | `None`   | `sort=name`       |
-| `page`    | Page number                                                           | `1`      | `page=2`          |
-| `size`    | Number of items per page                                              | `10`     | `size=20`         |
+| Parameter | Description                                                      | Default  | Example           |
+|:----------|:-----------------------------------------------------------------|:---------|:------------------|
+| `type`    | Resource (`people`, `films`, `planets`, `starships`, `vehicles`) | `people` | `type=planets`    |
+| `key`     | **Required.** Your Google Cloud API Key.                         | -        | `key=AIzaSy...`   |
+| `film_id` | **New!** Filter resources that appeared in a specific film ID.   | `None`   | `film_id=1`       |
+| `filter`  | Term for text search (names or titles)                           | `None`   | `filter=tatooine` |
+| `sort`    | Field key to sort the results by                                 | `None`   | `sort=name`       |
+| `page`    | Page number                                                      | `1`      | `page=2`          |
+| `size`    | Number of items per page                                         | `10`     | `size=20`         |
 
 ### Examples (cURL)
 
@@ -102,6 +104,12 @@ curl -s 'https://starwars-gateway-42dgaxj9.uc.gateway.dev?type=films&sort=title&
 Finds "Luke", "luke", or "LUKE".
 ```bash
 curl -s 'https://starwars-gateway-42dgaxj9.uc.gateway.dev?type=people&filter=Skywalker&key=YOUR_API_KEY'
+```
+
+#### 3. Deep Correlation: Get Characters from "A New Hope"
+Fetches all `people` resources that appeared in Film ID 1.
+```bash
+curl -s 'https://starwars-gateway-42dgaxj9.uc.gateway.dev?type=people&film_id=1&key=YOUR_API_KEY'
 ```
 
 ---
