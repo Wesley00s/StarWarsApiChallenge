@@ -15,7 +15,6 @@ class StarWarsService:
     def __init__(self, client: Optional[SWAPIClient] = None):
         self.client = client or SWAPIClient()
 
-
     def get_resource_by_id(self, resource_type: str, resource_id: int, base_url: str) -> dict[str, Any] | None:
         data = []
         if resource_type in ['people', 'person']:
@@ -41,7 +40,6 @@ class StarWarsService:
             return self._replace_urls(found_item, base_url)
 
         return None
-
 
     @staticmethod
     def _replace_urls(data: Dict[str, Any], base_url: str) -> Dict[str, Any]:
@@ -86,8 +84,17 @@ class StarWarsService:
             sort_by: Optional[str],
             page: int,
             size: int,
-            base_url: str
+            base_url: str,
+            film_id: Optional[int] = None
     ) -> Dict[str, Any]:
+
+        if film_id:
+            target_suffix = f"/films/{film_id}/"
+
+            data = [
+                item for item in data
+                if 'films' in item and any(url.endswith(target_suffix) for url in item.get('films', []))
+            ]
 
         if filter_term:
             data = [
@@ -110,19 +117,12 @@ class StarWarsService:
             sort_by: Optional[str] = None,
             page: int = 1,
             size: int = 10,
-            base_url: str = ""
+            base_url: str = "",
+            film_id: Optional[int] = None
     ) -> Dict[str, Person]:
-
-        data = self.client.get_people()
-
         return self._process_resource(
-            data,
-            name_filter,
-            'name',
-            sort_by,
-            page,
-            size,
-            base_url
+            self.client.get_people(),
+            name_filter, 'name', sort_by, page, size, base_url, film_id
         )
 
     def get_planets(
@@ -131,19 +131,18 @@ class StarWarsService:
             sort_by: Optional[str] = None,
             page: int = 1,
             size: int = 10,
-            base_url: str = ""
+            base_url: str = "",
+            film_id: Optional[int] = None
     ) -> Dict[str, Planet]:
-
-        data = self.client.get_planets()
-
         return self._process_resource(
-            data,
+            self.client.get_planets(),
             name_filter,
             'name',
             sort_by,
             page,
             size,
-            base_url
+            base_url,
+            film_id
         )
 
     def get_starships(
@@ -152,19 +151,58 @@ class StarWarsService:
             sort_by: Optional[str] = None,
             page: int = 1,
             size: int = 10,
-            base_url: str = ""
+            base_url: str = "",
+            film_id: Optional[int] = None
     ) -> Dict[str, Starship]:
-
-        data = self.client.get_starships()
-
         return self._process_resource(
-            data,
+            self.client.get_starships(),
             name_filter,
             'name',
             sort_by,
             page,
             size,
-            base_url
+            base_url,
+            film_id
+        )
+
+    def get_species(
+            self,
+            name_filter: Optional[str] = None,
+            sort_by: Optional[str] = None,
+            page: int = 1,
+            size: int = 10,
+            base_url: str = "",
+            film_id: Optional[int] = None
+    ) -> Dict[str, Specie]:
+        return self._process_resource(
+            self.client.get_species(),
+            name_filter,
+            'name',
+            sort_by,
+            page,
+            size,
+            base_url,
+            film_id
+        )
+
+    def get_vehicles(
+            self,
+            name_filter: Optional[str] = None,
+            sort_by: Optional[str] = None,
+            page: int = 1,
+            size: int = 10,
+            base_url: str = "",
+            film_id: Optional[int] = None
+    ) -> Dict[str, Vehicle]:
+        return self._process_resource(
+            self.client.get_vehicles(),
+            name_filter,
+            'name',
+            sort_by,
+            page,
+            size,
+            base_url,
+            film_id
         )
 
     def get_films(
@@ -175,52 +213,10 @@ class StarWarsService:
             size: int = 10,
             base_url: str = ""
     ) -> Dict[str, Film]:
-
-        data = self.client.get_films()
-
         return self._process_resource(
-            data, title_filter,
+            self.client.get_films(),
+            title_filter,
             'title',
-            sort_by,
-            page,
-            size,
-            base_url
-        )
-
-    def get_species(
-            self,
-            name_filter: Optional[str] = None,
-            sort_by: Optional[str] = None,
-            page: int = 1,
-            size: int = 10,
-            base_url: str = ""
-    ) -> Dict[str, Specie]:
-
-        data = self.client.get_species()
-
-        return self._process_resource(
-            data, name_filter,
-            'name',
-            sort_by,
-            page,
-            size,
-            base_url
-        )
-
-    def get_vehicles(
-            self,
-            name_filter: Optional[str] = None,
-            sort_by: Optional[str] = None,
-            page: int = 1,
-            size: int = 10,
-            base_url: str = ""
-    ) -> Dict[str, Vehicle]:
-
-        data = self.client.get_vehicles()
-
-        return self._process_resource(
-            data, name_filter,
-            'name',
             sort_by,
             page,
             size,
