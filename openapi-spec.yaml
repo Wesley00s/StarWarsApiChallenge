@@ -28,6 +28,9 @@ paths:
         - name: size
           in: query
           type: integer
+        - name: film_id
+          in: query
+          type: integer
         - name: key
           in: query
           type: string
