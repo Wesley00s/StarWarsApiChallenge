@@ -65,6 +65,13 @@ class StarWarsController:
             return jsonify({'error': 'Page and size must be integers'}), 400, cors_headers
 
         try:
+            film_id = request_args.get('film_id')
+            if film_id:
+                film_id = int(film_id)
+        except ValueError:
+            return jsonify({'error': 'film_id must be an integer'}), 400, cors_headers
+
+        try:
             if resource_id:
 
                 item = self.service.get_resource_by_id(resource_type, resource_id, current_base_url)
@@ -77,17 +84,17 @@ class StarWarsController:
             rt = resource_type.lower()
 
             if rt in ['people', 'person']:
-                data = self.service.get_people(filter_term, sort_by, page, size, base_url=current_base_url)
+                data = self.service.get_people(filter_term, sort_by, page, size, base_url=current_base_url, film_id=film_id)
             elif rt in ['planets', 'planet']:
-                data = self.service.get_planets(filter_term, sort_by, page, size, base_url=current_base_url)
+                data = self.service.get_planets(filter_term, sort_by, page, size, base_url=current_base_url, film_id=film_id)
             elif rt in ['starships', 'starship']:
-                data = self.service.get_starships(filter_term, sort_by, page, size, base_url=current_base_url)
+                data = self.service.get_starships(filter_term, sort_by, page, size, base_url=current_base_url, film_id=film_id)
             elif rt in ['films', 'film']:
                 data = self.service.get_films(filter_term, sort_by, page, size, base_url=current_base_url)
             elif rt in ['species', 'specie']:
-                data = self.service.get_species(filter_term, sort_by, page, size, base_url=current_base_url)
+                data = self.service.get_species(filter_term, sort_by, page, size, base_url=current_base_url, film_id=film_id)
             elif rt in ['vehicles', 'vehicle']:
-                data = self.service.get_vehicles(filter_term, sort_by, page, size, base_url=current_base_url)
+                data = self.service.get_vehicles(filter_term, sort_by, page, size, base_url=current_base_url, film_id=film_id)
             else:
                 return jsonify({
                     'error': f'Resource type "{resource_type}" not supported.'
